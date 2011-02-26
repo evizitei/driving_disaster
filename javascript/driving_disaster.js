@@ -20,7 +20,25 @@ $(document).ready(function() {
 		         .origin("center").image("images/sprite.png","no-repeat");
 	  player.addComponent("controls");
 	  player.attr({move: {left: false, right: false, up: false, down: false}, 
-	               xspeed: 0, yspeed: 0, decay: 0.999999, brake: false, brake_power: 0.9});
+	               speed: 0, xspeed: 0, yspeed: 0, speed_decay: 0.99, 
+	               brake: false, brake_power: 0.9,
+	               acceleration: 0.4, rotation_step: 3, max_speed: 15,
+	               back_speed: 2});
+	  
+	  player.stayInFrame = function(){
+	    if(this._x > Crafty.viewport.width) {
+				this.x = -64;
+			}
+			if(this._x < -64) {
+				this.x =  Crafty.viewport.width;
+			}
+			if(this._y > Crafty.viewport.height) {
+				this.y = -64;
+			}
+			if(this._y < -64) {
+				this.y = Crafty.viewport.height;
+			}
+	  };
 	  
 	  player.bind("keydown", function(e) {
 			//on keydown, set the move booleans
@@ -49,41 +67,37 @@ $(document).ready(function() {
 		});
 		
 		player.bind("enterframe",function(e){
-		  if(this.move.right) this.rotation += 5;
-			if(this.move.left) this.rotation -= 5;
+		  if(this.move.right){
+		    this.rotation += this.rotation_step;
+		  }
+			
+			if(this.move.left){
+			  this.rotation -= this.rotation_step;
+			}
 			
 			var vx = Math.sin(this._rotation * Math.PI / 180) * 0.3,
 				vy = Math.cos(this._rotation * Math.PI / 180) * 0.3;
 			
+			this.speed *= this.speed_decay;
 			//if the move up is true, increment the y/xspeeds
 			if(this.move.up) {
-				this.yspeed -= vy;
-				this.xspeed += vx;
+			  this.speed += this.acceleration;
 			} else if(this.brake){
-			  this.xspeed *= this.brake_power;
-				this.yspeed *= this.brake_power;
-			} else {
-				//if released, slow down the truck
-				this.xspeed *= this.decay;
-				this.yspeed *= this.decay;
-			}
+			  this.speed *= this.brake_power;
+			} 
+			
+			if(this.speed > this.max_speed)
+			  this.speed = this.max_speed;
+			
+			var rotation_radians = this.rotation * (Math.PI/180);
+			this.xspeed = this.speed * Math.sin(rotation_radians);
+			this.yspeed = (this.speed * Math.cos(rotation_radians)) * -1;
 			
 			//move the truck by the x and y speeds or movement vector
 			this.x += this.xspeed;
 			this.y += this.yspeed;
 			
-			if(this._x > Crafty.viewport.width) {
-				this.x = -64;
-			}
-			if(this._x < -64) {
-				this.x =  Crafty.viewport.width;
-			}
-			if(this._y > Crafty.viewport.height) {
-				this.y = -64;
-			}
-			if(this._y < -64) {
-				this.y = Crafty.viewport.height;
-			}
+			this.stayInFrame();
 		});
 		
 		player.draw();

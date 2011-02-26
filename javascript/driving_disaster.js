@@ -22,8 +22,8 @@ $(document).ready(function() {
 	  player.attr({move: {left: false, right: false, up: false, down: false}, 
 	               speed: 0, xspeed: 0, yspeed: 0, speed_decay: 0.99, 
 	               brake: false, brake_step: 0.15, 
-	               acceleration: 0.4, rotation_step: 8, 
-	               max_speed: 15});
+	               acceleration: 0.2, rotation_step: 6, 
+	               max_speed: 20});
 	  
 	  player.stayInFrame = function(){
 	    if(this._x > Crafty.viewport.width) {
@@ -41,15 +41,57 @@ $(document).ready(function() {
 	  };
 	  
 	  player.decaySpeed = function(){
-	    if(this.speed > 0.3){
+	    if(this.speed > this.acceleration - 0.1){
 	     	this.speed *= this.speed_decay; 
 	    }else{
 	      this.speed = 0;
 	    }
 	  };
 	  
+	  player.adjustRotation = function(){
+	    if(this.move.right){
+		    this.rotation += this.rotationDelta();
+		  }
+			
+			if(this.move.left){
+			  this.rotation -= this.rotationDelta();
+			}
+	  };
+	  
 	  player.rotationDelta = function(){
-	    return this.rotation_step * (this.speed / this.max_speed);
+	    var delta = this.rotation_step * (this.speed / this.max_speed);
+	    if(delta > 0 && delta < 3){
+	      delta = 3;
+	    }
+	    return delta;
+	  };
+	  
+	  player.move_step = function(){
+	    var rotation_radians = this.rotation * (Math.PI/180);
+			this.xspeed = this.speed * Math.sin(rotation_radians);
+			this.yspeed = (this.speed * Math.cos(rotation_radians)) * -1;
+			
+			//move the truck by the x and y speeds or movement vector
+			this.x += this.xspeed;
+			this.y += this.yspeed;
+	  };
+	  
+	  player.adjustSpeed = function(){
+	    this.decaySpeed();
+	    
+	    if(this.move.up) {
+			  this.speed += this.acceleration;
+			} 
+			
+			if(this.brake){
+			  this.speed -= this.brake_step;
+			} 
+			
+			if(this.speed > this.max_speed){
+			  this.speed = this.max_speed;
+			}else if(this.speed < 0){
+			  this.speed = 0;
+			}
 	  };
 	  
 	  player.bind("keydown", function(e) {
@@ -79,38 +121,9 @@ $(document).ready(function() {
 		});
 		
 		player.bind("enterframe",function(e){
-		  this.decaySpeed();
-		  
-		  if(this.move.right){
-		    this.rotation += this.rotationDelta();
-		  }
-			
-			if(this.move.left){
-			  this.rotation -= this.rotationDelta();
-			}
-		
-			if(this.move.up) {
-			  this.speed += this.acceleration;
-			} 
-			
-			if(this.brake){
-			  this.speed -= this.brake_step;
-			} 
-			
-			if(this.speed > this.max_speed){
-			  this.speed = this.max_speed;
-			}else if(this.speed < 0){
-			  this.speed = 0;
-			}
-			
-			var rotation_radians = this.rotation * (Math.PI/180);
-			this.xspeed = this.speed * Math.sin(rotation_radians);
-			this.yspeed = (this.speed * Math.cos(rotation_radians)) * -1;
-			
-			//move the truck by the x and y speeds or movement vector
-			this.x += this.xspeed;
-			this.y += this.yspeed;
-			
+      this.adjustRotation();
+		  this.adjustSpeed();
+			this.move_step();
 			this.stayInFrame();
 		});
 		

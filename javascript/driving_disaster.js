@@ -19,7 +19,8 @@ $(document).ready(function() {
 		         .attr({x: Crafty.viewport.width / 2, y: Crafty.viewport.height / 2, w:30, h:100})
 		         .origin("center").image("images/sprite.png","no-repeat");
 	  player.addComponent("controls");
-	  player.attr({move: {left: false, right: false, up: false, down: false}, xspeed: 0, yspeed: 0, decay: 0.99});
+	  player.attr({move: {left: false, right: false, up: false, down: false}, 
+	               xspeed: 0, yspeed: 0, decay: 0.999999, brake: false, brake_power: 0.9});
 	  
 	  player.bind("keydown", function(e) {
 			//on keydown, set the move booleans
@@ -29,6 +30,8 @@ $(document).ready(function() {
 				this.move.left = true;
 			} else if(e.keyCode === Crafty.keys.UA) {
 				this.move.up = true;
+			} else if(e.keyCode === Crafty.keys.DA) {
+			  this.brake = true;
 			}
 		});
 		
@@ -40,7 +43,9 @@ $(document).ready(function() {
 				this.move.left = false;
 			} else if(e.keyCode === Crafty.keys.UA) {
 				this.move.up = false;
-			}
+			} else if(e.keyCode === Crafty.keys.DA) {
+			  this.brake = false
+		  }
 		});
 		
 		player.bind("enterframe",function(e){
@@ -54,13 +59,16 @@ $(document).ready(function() {
 			if(this.move.up) {
 				this.yspeed -= vy;
 				this.xspeed += vx;
+			} else if(this.brake){
+			  this.xspeed *= this.brake_power;
+				this.yspeed *= this.brake_power;
 			} else {
-				//if released, slow down the ship
+				//if released, slow down the truck
 				this.xspeed *= this.decay;
 				this.yspeed *= this.decay;
 			}
 			
-			//move the ship by the x and y speeds or movement vector
+			//move the truck by the x and y speeds or movement vector
 			this.x += this.xspeed;
 			this.y += this.yspeed;
 			

@@ -40,6 +40,14 @@ $(document).ready(function() {
 			}
 	  };
 	  
+	  player.decaySpeed = function(){
+	    if(this.speed > 0.3){
+	     	this.speed *= this.speed_decay; 
+	    }else{
+	      this.speed = 0;
+	    }
+	  };
+	  
 	  player.bind("keydown", function(e) {
 			//on keydown, set the move booleans
 			if(e.keyCode === Crafty.keys.RA) {
@@ -67,6 +75,8 @@ $(document).ready(function() {
 		});
 		
 		player.bind("enterframe",function(e){
+		  this.decaySpeed();
+		  
 		  if(this.move.right){
 		    this.rotation += this.rotation_step;
 		  }

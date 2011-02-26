@@ -22,7 +22,7 @@ $(document).ready(function() {
 	  player.attr({move: {left: false, right: false, up: false, down: false}, 
 	               speed: 0, xspeed: 0, yspeed: 0, speed_decay: 0.99, 
 	               brake: false, brake_step: 0.15, 
-	               acceleration: 0.4, rotation_step: 3, 
+	               acceleration: 0.4, rotation_step: 8, 
 	               max_speed: 15});
 	  
 	  player.stayInFrame = function(){
@@ -48,6 +48,10 @@ $(document).ready(function() {
 	    }
 	  };
 	  
+	  player.rotationDelta = function(){
+	    return this.rotation_step * (this.speed / this.max_speed);
+	  };
+	  
 	  player.bind("keydown", function(e) {
 			//on keydown, set the move booleans
 			if(e.keyCode === Crafty.keys.RA) {
@@ -70,7 +74,7 @@ $(document).ready(function() {
 			} else if(e.keyCode === Crafty.keys.UA) {
 				this.move.up = false;
 			} else if(e.keyCode === Crafty.keys.DA) {
-			  this.brake = false
+			  this.brake = false;
 		  }
 		});
 		
@@ -78,14 +82,13 @@ $(document).ready(function() {
 		  this.decaySpeed();
 		  
 		  if(this.move.right){
-		    this.rotation += this.rotation_step;
+		    this.rotation += this.rotationDelta();
 		  }
 			
 			if(this.move.left){
-			  this.rotation -= this.rotation_step;
+			  this.rotation -= this.rotationDelta();
 			}
 		
-			//if the move up is true, increment the y/xspeeds
 			if(this.move.up) {
 			  this.speed += this.acceleration;
 			} 
